@@ -22,7 +22,7 @@ han_crossfix_log 0 // 是否控制台打印修复logger 默认 0
 安装方式：
 
 必须前置条件 ：
-使用武器系统（![HanWeaponSystem](https://github.com/H-AN/H-AN-CSS-HanWeaponSystem)）、
+使用武器系统（[HanWeaponSystem](https://github.com/H-AN/H-AN-CSS-HanWeaponSystem)）
 快速近战（quickseries by Ducheese ）
 
 使用 HanWeaponSystem 配合快速近战时 快速近战插件cvar sm_quickmelee_fix_viewmodel 必须设置为 1 或者 2
