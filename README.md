@@ -8,7 +8,8 @@ han_crossfix_draw_ticks 2 //两个 VM 切换修复的绘制中间tick时间 默�
 han_crossfix_melee_ticks 3 // 快速近战刀切换修复的的绘制中间tick时间 默认 3
 han_crossfix_log 0 // 是否控制台打印修复logger 默认 0
 ```
-实现通过玩家m_bDrawViewmodel关闭第一人称模型绘制，继续发送VM的中间sequence；恢复目标sequence时恢复绘制。
+实现通过玩家m_bDrawViewmodel关闭第一人称模型绘制，继续发送VM的中间sequence；
+恢复目标sequence时恢复绘制。
 
 
 工作方式：
