@@ -1,53 +1,63 @@
-独立跨VM动画修复插件
+# Han VM Cross Fix
 
-CVAR
+适用于 CS:S [HanWeaponSystem](https://github.com/H-AN/H-AN-CSS-HanWeaponSystem) 的通用第一人称武器动画修复插件。
+
+武器系统使用 VM0 和 VM1 两个视图模型显示武器。跨 VM 切换时可能出现拔枪、挥刀等动画丢失，Han VM Cross Fix 专门修复这类问题，是武器系统的核心配套修复插件。
+
+**无需安装快速近战插件即可使用。** 如果同时安装了 QuickMelee，本插件会自动兼容，一并修复快速近战跨 VM 切换时的刀动画丢失。
+
+## 功能
+
+- 修复武器在 VM0 → VM1、VM1 → VM0 切换时的动画丢失，适用于武器系统中的跨 VM 切换场景，不限定某种武器。
+- 修复期间暂时隐藏第一人称模型，恢复目标动画后立即显示，避免临时修复序列闪现。
+- 自动兼容 QuickMelee，修复快速近战挥刀及切回武器过程中的跨 VM 动画问题。
+- 同时处理特定模型组合的切换问题，包括自定义 M3 / XM1014 模板武器与自定义消音 USP 模板武器之间的双向快切。
+
+普通同 VM 切换不额外插入修复序列；上述已修复的特殊组合单独处理。
+
+## 依赖
+
+| 组件 | 要求 |
+| --- | --- |
+| SourceMod / SDKTools | 必需 |
+| [HanWeaponSystem v8.2](https://github.com/H-AN/H-AN-CSS-HanWeaponSystem) | 必需，提供武器和视图模型 API |
+| [QuickMelee（quickseries）](https://github.com/Ducheese/quickseries) | 可选，安装后自动启用快速近战兼容 |
+
+仅安装武器系统与本插件，即可使用武器切换动画修复。QuickMelee 不属于必需前置。
+
+## 安装
+
+1. 安装 HanWeaponSystem。
+2. 将 `HanVMCrossFix.smx` 放入 `addons/sourcemod/plugins/`，加载插件或重启服务器。
+3. 默认配置即可使用；如需调整，将下方 CVar 写入 `server.cfg` 或其他服务器配置。本插件不自动生成配置文件。
+
+### QuickMelee 兼容
+
+同时安装 QuickMelee 时，本插件会在每回合开始自动将 `sm_quickmelee_fix_viewmodel` 设为 `1`，由 QuickMelee 正确处理近战时的模型显示。
+
+该回合设置独立于动画修复开关；关闭 `han_crossfix_enable` 或卸载本插件不会自动还原此 CVar。未安装 QuickMelee 时不执行这项设置。
+
+## CVar
+
+| CVar | 默认值 | 说明 |
+| --- | --- | --- |
+| `han_crossfix_enable` | `1` | 动画修复开关：0 关闭，1 开启 |
+| `han_crossfix_hide` | `1` | 修复期间隐藏第一人称模型，避免临时序列闪现：0 关闭，1 开启 |
+| `han_crossfix_draw_ticks` | `2` | 武器切换动画修复持续的 tick 数，范围 1–8 |
+| `han_crossfix_melee_ticks` | `3` | 快速近战动画修复持续的 tick 数，范围 1–8，仅 QuickMelee 兼容流程使用 |
+| `han_crossfix_log` | `0` | 动画修复诊断日志：0 关闭，1 开启 |
+
+```cfg
+han_crossfix_enable 1
+han_crossfix_hide 1
+han_crossfix_draw_ticks 2
+han_crossfix_melee_ticks 3
+han_crossfix_log 0
 ```
-han_crossfix_enable 1 //是否开启修复 默认 1
-han_crossfix_hide 1 //在中间 Tick 期间隐藏第一人称视图模型渲染(视觉不突兀)；继续进行网络同步。 默认 1
-han_crossfix_draw_ticks 2 //两个 VM 切换修复的绘制中间tick时间 默认 2
-han_crossfix_melee_ticks 3 // 快速近战刀切换修复的的绘制中间tick时间 默认 3
-han_crossfix_log 0 // 是否控制台打印修复logger 默认 0
-```
-实现通过玩家m_bDrawViewmodel关闭第一人称模型绘制，继续发送VM的中间sequence；
-恢复目标sequence时恢复绘制。
 
+Tick 是服务器运行步长，不是客户端画面帧数。建议使用默认值；调大修复 tick 数也会延长修复期间的模型隐藏时间。
 
-工作方式：
-- Han_GetClientViewModelMode / GetClientViewModel：确认实际显示的VM。
-- QuickMelee_IsCombat：识别快速近战流程。
-- Han_OnKnifeAttack：仅记录真实刀攻击发生，等OnPlayerRunCmdPost再读取最终攻击序列。
-- OnPlayerRunCmdPost：检测跨VM、保持中间序列、恢复动画；覆盖0→1和1→0。
-- 单用WeaponSwitch不够：QuickMelee直接改m_hActiveWeapon，跳过正常Deploy。
+## 自行编译
 
-安装方式：
-
-必须前置条件 ：
-使用武器系统（[HanWeaponSystem](https://github.com/H-AN/H-AN-CSS-HanWeaponSystem)）
-快速近战 by Ducheese（[quickseries](https://github.com/Ducheese/quickseries)）
-```
-使用 HanWeaponSystem 配合快速近战时 快速近战插件的cvar 
-
-sm_quickmelee_fix_viewmodel 必须设置为 1 或者 2
-
-上述前置完成后 将本插件放置在plugins内一起使用
-```
-
-```
-draw两方向修复均默认2 tick，沿用用户确认合适的值。快速近战攻击默认3 tick。
-han_crossfix_enable 0 关闭外部修补；使用此cvar进行 测试，可以有效的看到修复效果
-```
-
-满足测试四种方向：
-1. VM1枪→VM0刀快速近战→VM1枪。 - √完美修复，动画无缺失
-2. VM1自定义刀→VM0原版枪，检查原版枪draw。√完美修复，动画无缺失
-3. 普通0→1、1→0切枪。√完美修复，动画无缺失
-4. 0→0、1→1不触发修补；切回后立即开火、换弹应能中断旧动画。
-
-```
-注意事项：
-此插件原为修复 HanWeaponSystem 与  quickseries 的兼容插件
-所以本插件必须同时安装 HanWeaponSystem 与  quickseries 用了两者的API进行外部修复
-但是所用的修复原理可以用与其他情况下 v0与v1 切换导致丢失动画的问题
-其他插件可参考此修复原理，自行寻找v0和v1 然后根据源码逻辑原理进行动画修复
-```
+使用 SourceMod 编译器，准备标准的 `sourcemod.inc`、`sdktools.inc` 和武器系统 v8.2 的 `HanWeaponSystem.inc`，编译 `HanVMCrossFix.sp`。
 
